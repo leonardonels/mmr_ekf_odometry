@@ -221,7 +221,8 @@ void EKFOdom::correct(const Vector3f *z, const size_t act_cones_detected) {
 
             /* Compute Kalman Gain. K size: (2N+3, 2) */
             MatrixXf K;
-            K = this->P_ * Ht_k.transpose() * (((Ht_k * this->P_ * Ht_k.transpose()) + this->Q_).inverse());
+            this->S_ = (((Ht_k * this->P_ * Ht_k.transpose()) + this->Q_).inverse());
+            K = this->P_ * Ht_k.transpose() * this->S_;
 
             Vector2f meas_diff = Vector2f(z[i](0), z[i](1)) - exp_z_k;
             /* Update filter state */
@@ -272,6 +273,11 @@ Matrix3f EKFOdom::getMeasurementNoiseCovariance() const {
 MatrixXf EKFOdom::getFx() const {
     return Fx_;
 }
+
+Matrix2f EKFOdom::getInnovationMatrix() const {
+    return S_;
+}
+
 void EKFOdom::setFirstLapCompleted(const bool first_lap_completed)
 {
     this->is_first_lap_completed = first_lap_completed;

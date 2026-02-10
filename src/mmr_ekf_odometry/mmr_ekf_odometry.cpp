@@ -165,11 +165,27 @@ void MmrEKFOdometry::conesCallback(
   this->ekf_odom->correct(z, detected_cones);
   end = this->now();
   rclcpp::Duration exe_time = end - start;
-  if (this->enable_logging)
+  // this->enable_logging
+  if (!this->enable_logging)
     RCLCPP_INFO(this->get_logger(), "CORRECT Exe time (ms): %lf",
                 exe_time.nanoseconds() * 1e-6);
   // RCLCPP_INFO_STREAM(this->get_logger(), "FILTER STATE: " <<
   // this->ekf_odom->getState());
+
+  // Calculate NIS (Normalized Innovation Error Squared) 
+  // to tuning the proc_noise matrix
+  if (this->enable_logging) {
+    Vector2f *e = (Vector2f *) malloc(detected_cones * sizeof(Vector2f));
+    for (size_t j = 0; j < detected_cones; j++) {
+      // Calculate innovation vector
+      e[j](0) = z[j](0) - cones_data->points[j].x;
+      e[j](1) = z[j](1) - cones_data->points[j].y;
+      // Calculate current NIS
+      float nis_curr = (e[j].transpose() * this->ekf_odom->getInnovationMatrix().inverse() * e[j])(0,0); 
+      RCLCPP_INFO(this->get_logger(), "NIS valued %f", nis_curr);
+    }
+    free(e);
+  }
 
   free(z);
 
