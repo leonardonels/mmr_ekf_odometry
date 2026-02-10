@@ -166,7 +166,7 @@ void MmrEKFOdometry::conesCallback(
   end = this->now();
   rclcpp::Duration exe_time = end - start;
   // this->enable_logging
-  if (!this->enable_logging)
+  if (this->enable_logging)
     RCLCPP_INFO(this->get_logger(), "CORRECT Exe time (ms): %lf",
                 exe_time.nanoseconds() * 1e-6);
   // RCLCPP_INFO_STREAM(this->get_logger(), "FILTER STATE: " <<
