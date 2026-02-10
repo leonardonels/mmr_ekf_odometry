@@ -27,6 +27,7 @@ private:
     Eigen::MatrixXf P_;     /* Covariance matrix */
     Eigen::Matrix2f Q_;     /* Process noise covariance */
     Eigen::Matrix3f R_;     /* Measurement covariance */
+    Eigen::Matrix2f S_;     /* Innovation matrix */
     Eigen::MatrixXf Fx_;    /* Convenience matrix used for mapping the 3D state vector to (3, 3N + 3)D during update step */
     Eigen::MatrixXf Fx_k;   /* Convenience matrix used for mapping the 3D state vector to (6,  3N + 3)D during correction step */
     SignatureVector s_;     /* Vector containing the signature for each landmark. In our case the signature is the COLOR of the cone. The ID for each color are defined in hedaer file: "color_logic.hpp" . */
@@ -66,6 +67,7 @@ public:
     Matrix2f getProcessNoiseCovariance() const;
     Matrix3f getMeasurementNoiseCovariance() const;
     MatrixXf getFx() const;
+    Matrix2f getInnovationMatrix() const;
     size_t getActMappedLandmarks() const;
     SignatureVector getSignatures() const;
 
