@@ -38,7 +38,7 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
       std::bind(&MmrEKFOdometry::fastLioDataCallback, this,
                 std::placeholders::_1));
 
-  this->race_status_sub = this->create_subscription<common_msgs::msg::RaceStatus>(
+  this->race_status_sub = this->create_subscription<mmr_base::msg::RaceStatus>(
       this->race_status_topic, qos,
       std::bind(&MmrEKFOdometry::raceStatusCallback, this,
                 std::placeholders::_1));
@@ -63,7 +63,7 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
   this->initConesMarker(this->correctedConesMarker);
 
   /* Init race status */
-  this->race_status = common_msgs::msg::RaceStatus();
+  this->race_status = mmr_base::msg::RaceStatus();
   this->race_status.current_lap = 0;
 }
 
@@ -362,7 +362,7 @@ void MmrEKFOdometry::updatePose() {
 }
 
 void MmrEKFOdometry::raceStatusCallback(
-    const common_msgs::msg::RaceStatus::SharedPtr race_status_data) {
+    const mmr_base::msg::RaceStatus::SharedPtr race_status_data) {
   /* Update race status */
   this->race_status = *race_status_data;
 }

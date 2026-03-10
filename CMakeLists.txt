@@ -25,7 +25,7 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(visualization_msgs REQUIRED)
-find_package(common_msgs REQUIRED)
+find_package(mmr_base REQUIRED)
 
 add_subdirectory(ekf_odom)
 
@@ -69,7 +69,7 @@ ament_target_dependencies(${PROJECT_NAME}
   tf2_ros
   nav_msgs
   visualization_msgs
-  common_msgs
+  mmr_base
 )
 
 add_executable(${PROJECT_NAME}_node src/mmr_ekf_odometry/${PROJECT_NAME}_node.cpp)

@@ -13,7 +13,7 @@
 
 #include "../ekf_odom/include/ekf_odom.hpp"
 
-#include <common_msgs/msg/race_status.hpp>
+#include <mmr_base/msg/race_status.hpp>
 
 #include <memory>
 #include <string>
@@ -56,7 +56,7 @@ private:
   Vector2d act_ll, prev_ll;
 
   /* Actual Race status */
-  common_msgs::msg::RaceStatus race_status;
+  mmr_base::msg::RaceStatus race_status;
 
   /* Total number of cones mapped after the first lap */
   uint16_t tot_mapped_cones = 0;
@@ -89,7 +89,7 @@ private:
   // rclcpp::Subscription<visualization_msgs::msg::Nagps_odometrySatHeading>::SharedPtr gps_data_sub;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_odom_sub;
   rclcpp::Subscription<visualization_msgs::msg::Marker>::SharedPtr cones_sub;
-  rclcpp::Subscription<common_msgs::msg::RaceStatus>::SharedPtr race_status_sub;
+  rclcpp::Subscription<mmr_base::msg::RaceStatus>::SharedPtr race_status_sub;
 
   /* Subscriptions Callbacks */
   void
@@ -99,7 +99,7 @@ private:
   void
   fastLioDataCallback(const nav_msgs::msg::Odometry::SharedPtr fast_lio_data);
   void raceStatusCallback(
-      const common_msgs::msg::RaceStatus::SharedPtr race_status_data);
+      const mmr_base::msg::RaceStatus::SharedPtr race_status_data);
   // void llaToUTM(const visualization_msgs::msg::NavSatHeading::SharedPtr gps_data);
 
   /* Load node parameters */
