@@ -70,9 +70,9 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
 void MmrEKFOdometry::loadParameters() {
   std::vector<double> tmp_proc_noise(2), tmp_meas_noise(3);
 
-  declare_parameter("generic.cones_topic", "/perception/cones");
+  declare_parameter("generic.cones_topic", "/clusters");
   declare_parameter("generic.imu_topic", "/imu/data");
-  declare_parameter("generic.input_odom_topic", "/Odometry/fastLioOdom");
+  declare_parameter("generic.input_odom_topic", "/fast_limo/state");
   declare_parameter("generic.output_odom_topic", "/Odometry");
   declare_parameter("generic.gps_speed_topic", "/speed/gps");
   declare_parameter("generic.gps_data_topic", "/gps/data");
