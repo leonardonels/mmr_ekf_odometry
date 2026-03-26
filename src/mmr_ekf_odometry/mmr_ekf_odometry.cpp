@@ -5,7 +5,7 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
   this->loadParameters();
 
   /* Define QoS for Best Effort messages transport */
-  auto qos = rclcpp::QoS(rclcpp::KeepLast(1), rmw_qos_profile_sensor_data);
+  auto qos = rclcpp::QoS(rclcpp::KeepLast(10), rmw_qos_profile_sensor_data);
 
   /* Create publisher */
   this->odom_pub = this->create_publisher<nav_msgs::msg::Odometry>(
