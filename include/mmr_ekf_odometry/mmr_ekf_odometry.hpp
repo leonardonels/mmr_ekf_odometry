@@ -84,7 +84,7 @@ private:
       conesPositionsMarkerPub;
 
   /* ROS 2 Subscribers */
-  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr fast_lio_odom_sub;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr fast_limo_odom_sub;
   // rclcpp::Subscription<visualization_msgs::msg::GpsSpeed>::SharedPtr gps_speed_sub;
   // rclcpp::Subscription<visualization_msgs::msg::Nagps_odometrySatHeading>::SharedPtr gps_data_sub;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_odom_sub;

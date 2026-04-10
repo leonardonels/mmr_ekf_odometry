@@ -16,7 +16,7 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
 
   /* Create subscriptions */
   this->cones_sub = this->create_subscription<visualization_msgs::msg::Marker>(
-      this->cones_topic, qos,
+      this->cones_topic, 100,
       std::bind(&MmrEKFOdometry::conesCallback, this, std::placeholders::_1));
 
   // this->gps_speed_sub = this->create_subscription<visualization_msgs::msg::GpsSpeed>(
@@ -33,13 +33,13 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
   //     this->imu_topic, qos, std::bind(&MmrEKFOdometry::imuDataCallback, this,
   //     std::placeholders::_1));
 
-  this->fast_lio_odom_sub = this->create_subscription<nav_msgs::msg::Odometry>(
-      this->input_odom_topic, qos,
+  this->fast_limo_odom_sub = this->create_subscription<nav_msgs::msg::Odometry>(
+      this->input_odom_topic, 1,
       std::bind(&MmrEKFOdometry::fastLioDataCallback, this,
                 std::placeholders::_1));
 
   this->race_status_sub = this->create_subscription<mmr_base::msg::RaceStatus>(
-      this->race_status_topic, qos,
+      this->race_status_topic, 1,
       std::bind(&MmrEKFOdometry::raceStatusCallback, this,
                 std::placeholders::_1));
 
