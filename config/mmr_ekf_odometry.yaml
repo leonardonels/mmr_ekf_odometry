@@ -2,14 +2,26 @@
   ros__parameters:
     generic:
       cones_topic: "/clusters"
+      cones_frame_id: "hesai_lidar"
+      
+      mapped_cones_topic: "/slam/cones_positions"
+      mapped_cones_frame_id: "track"
+      
       imu_topic: "/imu/data"  # or /lidar_imu
+      
       input_odom_topic: "/fast_limo/state"
+      input_odom_frame_id: "track"
+
       output_odom_topic: "/Odometry"
+      output_odom_frame_id: "track"
+      output_odom_child_frame_id: "imu_link"
+
       # gps_speed_topic: "/speed/gps"
       race_status_topic: "/planning/race_status"
       enable_logging: false
       cone_time_seen_th: 4
       is_skidpad_mission: false
+      cones_pub_for_debug: true
 
     frequency:
       imu_fs: 100

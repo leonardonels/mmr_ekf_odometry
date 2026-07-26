@@ -14,7 +14,7 @@ MmrEKFOdometry::MmrEKFOdometry() : rclcpp::Node("mmr_ekf_odometry_node") {
       this->output_odom_topic, 1);
   this->conesPositionsMarkerPub =
       this->create_publisher<visualization_msgs::msg::Marker>(
-          "/slam/cones_positions", 1);
+          this->mapped_cones_topic, 1);
 
   /* Create subscriptions */
   this->cones_sub = this->create_subscription<visualization_msgs::msg::Marker>(
@@ -73,15 +73,29 @@ void MmrEKFOdometry::loadParameters() {
   std::vector<double> tmp_proc_noise(2), tmp_meas_noise(3);
 
   declare_parameter("generic.cones_topic", "/clusters");
+  declare_parameter("generic.cones_frame_id", "hesai_lidar");
+
+  declare_parameter("generic.mapped_cones_topic", "/slam/cones_positions");
+  declare_parameter("generic.mapped_cones_frame_id", "track");
+  
   declare_parameter("generic.imu_topic", "/imu/data");
+  
   declare_parameter("generic.input_odom_topic", "/fast_limo/state");
+  declare_parameter("generic.input_odom_frame_id", "track");
+
   declare_parameter("generic.output_odom_topic", "/Odometry");
+  declare_parameter("generic.output_odom_frame_id", "track");
+  declare_parameter("generic.output_odom_child_frame_id", "imu_link");
+
   declare_parameter("generic.gps_speed_topic", "/speed/gps");
   declare_parameter("generic.gps_data_topic", "/gps/data");
   declare_parameter("generic.race_status_topic", "/planning/race_status");
+  
   declare_parameter("generic.enable_logging", false);
   declare_parameter("generic.cone_time_seen_th", 2);
   declare_parameter("generic.is_skidpad_mission", false);
+  declare_parameter("generic.cones_pub_for_debug", false);
+
 
   /* Declare Sensor Noise parameters */
   RCLCPP_INFO(this->get_logger(), "test");
@@ -90,23 +104,38 @@ void MmrEKFOdometry::loadParameters() {
   declare_parameter("noises.min_new_cone_distance", 2.0);
   RCLCPP_INFO(this->get_logger(), "test");
 
+
   get_parameter("generic.cones_topic", this->cones_topic);
+  get_parameter("generic.cones_frame_id", this->cones_frame_id);
+  
+  get_parameter("generic.mapped_cones_topic", this->mapped_cones_topic);
+  get_parameter("generic.mapped_cones_frame_id", this->mapped_cones_frame_id);
+  
   get_parameter("generic.imu_topic", this->imu_topic);
+  
   get_parameter("generic.input_odom_topic", this->input_odom_topic);
+  get_parameter("generic.input_odom_frame_id", this->input_odom_frame_id);
+  
   get_parameter("generic.output_odom_topic", this->output_odom_topic);
+  get_parameter("generic.output_odom_frame_id", this->output_odom_frame_id);
+  get_parameter("generic.output_odom_child_frame_id", this->output_odom_child_frame_id);
+
   get_parameter("generic.gps_speed_topic", this->gps_speed_topic);
   get_parameter("generic.gps_data_topic", this->gps_data_topic);
   get_parameter("generic.race_status_topic", this->race_status_topic);
   get_parameter("generic.enable_logging", this->enable_logging);
   get_parameter("generic.is_skidpad_mission", this->is_skidpad_mission);
+  get_parameter("generic.cones_pub_for_debug", this->cones_pub_for_debug);
 
   RCLCPP_INFO(this->get_logger(), "IS_SKIDPAD: %u", this->is_skidpad_mission);
+
 
   /* Get Sensor Noise parameters */
   get_parameter("noises.proc_noise", tmp_proc_noise);
   get_parameter("noises.meas_noise", tmp_meas_noise);
   get_parameter("noises.min_new_cone_distance", this->min_new_cone_distance);
   get_parameter("generic.cone_time_seen_th", this->cone_time_seen_th);
+
 
   /* Copy noise parameters */
   for (size_t i = 0; i < 3; i++) {
@@ -118,7 +147,7 @@ void MmrEKFOdometry::loadParameters() {
 }
 
 void MmrEKFOdometry::initConesMarker(visualization_msgs::msg::Marker &cones) {
-  cones.header.frame_id = "track";
+  cones.header.frame_id = this->mapped_cones_frame_id;
   cones.ns = "ConesAbsolutePos";
   cones.id = 0;
   cones.type = visualization_msgs::msg::Marker::SPHERE_LIST;
@@ -145,6 +174,8 @@ void MmrEKFOdometry::conesCallback(
   // {
   //     return;
   // }
+  /* By refusing to updates the cones (the center line from the local planner 
+    won't be updated anyway) the ekf should work as an achor for possible fast lio drift */
   size_t detected_cones = cones_data->points.size();
 
   Vector3f *z = (Vector3f *)malloc(detected_cones * sizeof(Vector3f));
@@ -152,9 +183,8 @@ void MmrEKFOdometry::conesCallback(
     z[i](0) = sqrt(pow(cones_data->points[i].x, 2) +
                    pow(cones_data->points[i].y, 2)); // + coneRadius;
     z[i](1) = atan2(cones_data->points[i].y, cones_data->points[i].x);
-    // TODO: Fix this. The color is not being set correctly
-    // z[i](2) = this->getConeColor(cones_data->colors[i]);
-    z[i](2) = yellowCone;
+    /* Colorblind assumption */
+    z[i](2) = yellowCone;               // z[i](2) = this->getConeColor(cones_data->colors[i]);
     /* Normalize angle */
     z[i](1) = this->ekf_odom->normalizeAngle(z[i](1));
 
@@ -190,7 +220,7 @@ void MmrEKFOdometry::conesCallback(
   this->act_orientation.set__w(q.getW());
 
   /* Publish cones */
-  if (!this->corrected_cones_created) {
+  if (!this->corrected_cones_created || this->cones_pub_for_debug) {
     size_t mapped_cones = this->ekf_odom->getActMappedLandmarks();
     conesMarker.points.reserve(mapped_cones);
     conesMarker.colors.reserve(mapped_cones);
@@ -228,7 +258,7 @@ void MmrEKFOdometry::conesCallback(
   }
 
   /* Publish vehicle pose and cones position */
-  if (!this->corrected_cones_created) {
+  if (!this->corrected_cones_created || this->cones_pub_for_debug) {
     this->pubConesMarkers(conesMarker);
     conesMarker.points.clear();
     conesMarker.colors.clear();
@@ -236,7 +266,9 @@ void MmrEKFOdometry::conesCallback(
     this->pubConesMarkers(correctedConesMarker);
   }
 
-  this->updatePose();
+  if(!this->corrected_cones_created){ // redundant check, but it's fine
+    this->updatePose();
+  }
 }
 
 // void MmrEKFOdometry::gpsSpeedDataCallback(
@@ -315,6 +347,20 @@ void MmrEKFOdometry::fastLioDataCallback(
     }
 
     this->updatePose();
+  }else{
+    /* If this is the first lap, just publish FAST-LIO pose and cones position if
+     * seen. */
+    this->act_position << pose(0), pose(1), 0.0;
+    this->act_yaw = pose(2);
+
+    tf2::Quaternion q;
+    q.setRPY(0.0, 0.0, this->act_yaw);
+    this->act_orientation.set__x(q.getX());
+    this->act_orientation.set__y(q.getY());
+    this->act_orientation.set__z(q.getZ());
+    this->act_orientation.set__w(q.getW());
+
+    this->updatePose();
   }
 }
 
@@ -329,8 +375,8 @@ void MmrEKFOdometry::updatePose() {
 
   /* Update header */
   t.header.stamp = this->now();
-  t.header.frame_id = "track";
-  t.child_frame_id = "imu_link";
+  t.header.frame_id = this->output_odom_frame_id;
+  t.child_frame_id = this->output_odom_child_frame_id;
 
   /* Update TF location */
   t.transform.translation.x = act_position[0];
@@ -341,8 +387,8 @@ void MmrEKFOdometry::updatePose() {
   t.transform.rotation = this->act_orientation;
 
   _odom.header.stamp = this->now();
-  _odom.header.frame_id = "track";
-  _odom.child_frame_id = "imu_link";
+  _odom.header.frame_id = this->output_odom_frame_id;
+  _odom.child_frame_id = this->output_odom_child_frame_id;
 
   /* Update Odom position */
   _odom.pose.pose.position.x = act_position[0];

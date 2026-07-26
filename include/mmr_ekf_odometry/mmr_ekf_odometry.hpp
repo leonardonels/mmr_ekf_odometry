@@ -21,8 +21,15 @@
 class MmrEKFOdometry : public rclcpp::Node {
 private:
   /* Subscriptions topics' names */
-  std::string cones_topic, imu_topic, input_odom_topic, output_odom_topic,
+  std::string cones_topic, cones_frame_id, 
+      mapped_cones_topic, mapped_cones_frame_id, 
+      imu_topic, 
+      input_odom_topic, input_odom_frame_id, 
+      output_odom_topic, output_odom_frame_id, output_odom_child_frame_id,
       gps_speed_topic, gps_data_topic, race_status_topic;
+    
+  /* Debug parameter */
+  bool cones_pub_for_debug;
 
   /* Enable logging parameter */
   bool enable_logging;
